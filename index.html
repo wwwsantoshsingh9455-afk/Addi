@@ -3,192 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TERMINAL BREAKER: V8 PWA</title>
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00ff41">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <title>TERMINAL BREAKER: V10 CLEAN_UI</title>
     <style>
-        :root { --neon: #00ff41; --fail: #ff3131; --warn: #ffae00; --blue: #00d4ff; --key-bg: rgba(0, 255, 65, 0.08); }
+        :root { --neon: #00ff41; --fail: #ff3131; --warn: #ffae00; --bg: #000; }
         body { 
-            background: #000; color: var(--neon); font-family: 'Courier New', monospace; 
-            margin: 0; padding: 0; height: 100dvh; overflow: hidden; display: flex; flex-direction: column;
+            background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; 
+            margin: 0; padding: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
-        /* CRT Effect */
+
+        /* CRT Effect (Subtle) */
         body::after {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
-            z-index: 50; background-size: 100% 3px, 3px 100%; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%);
+            z-index: 100; pointer-events: none; background-size: 100% 4px;
         }
-        .game-wrapper { height: 100%; display: flex; flex-direction: column; padding: 5px; box-sizing: border-box; }
-        .stats-bar { font-size: 0.7em; padding: 8px; display: flex; justify-content: space-between; background: #050505; border-bottom: 1px solid #222; }
-        .shop-btn { background: var(--blue); color: #000; border: none; padding: 2px 8px; font-weight: bold; border-radius: 2px; cursor: pointer; }
-        .terminal { flex-grow: 1; border: 1px solid var(--neon); background: rgba(0, 5, 0, 0.98); display: flex; flex-direction: column; overflow: hidden; position: relative; margin: 5px 0; }
-        #term-scroll { flex-grow: 1; padding: 12px; overflow-y: auto; font-size: 0.82em; line-height: 1.5; }
-        .controls { display: flex; flex-direction: column; background: #000; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px; height: 220px; }
-        .key { background: var(--key-bg); border: 1px solid #1a3a1a; color: var(--neon); display: flex; align-items: center; justify-content: center; font-size: 1.4em; font-weight: bold; border-radius: 4px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .key:active { background: var(--neon); color: #000; }
-        .key.ent { background: rgba(0, 255, 65, 0.2); }
-        .abort-btn { background: var(--fail); color: #fff; text-align: center; padding: 10px; font-weight: bold; font-size: 0.85em; cursor: pointer; margin: 0 8px 8px 8px; border-radius: 4px; display: none; }
-        #status-overlay, #shop-overlay { position: absolute; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:100; text-align:center; padding: 20px; box-sizing: border-box; }
-        #shop-overlay { background: rgba(0, 10, 20, 0.98); border: 1px solid var(--blue); }
-        .shop-item { border: 1px solid var(--blue); padding: 10px; margin: 5px; width: 85%; color: var(--blue); cursor: pointer; font-size: 0.8em; }
-        .line { margin-bottom: 3px; }
-        .prompt { color: var(--neon); font-weight: bold; }
-        .glitch { animation: glitch-anim 0.2s infinite; }
-        @keyframes glitch-anim { 0% { transform: translate(2px,0); } 50% { transform: translate(-2px,1px); filter: hue-rotate(90deg); } 100% { transform: translate(0); } }
-        .overlay-fail { background: rgba(60, 0, 0, 0.95); }
-        .overlay-win { background: rgba(0, 40, 20, 0.95); }
+
+        .header-bar { font-size: 0.75em; padding: 8px 12px; display: flex; justify-content: space-between; border-bottom: 1px solid #1a1a1a; background: #050505; }
+        
+        .terminal-container {
+            flex-grow: 1; margin: 5px; border: 1px solid #222; background: rgba(0, 8, 0, 0.98);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        #term-scroll { flex-grow: 1; padding: 12px; overflow-y: auto; font-size: 0.85em; line-height: 1.4; scroll-behavior: smooth; }
+
+        /* Clean Level Selection (Inside Terminal) */
+        .menu-opt { color: #fff; text-decoration: underline; cursor: pointer; margin: 8px 0; display: block; }
+        .menu-opt:active { color: var(--neon); }
+
+        .input-line { padding: 10px; border-top: 1px solid #1a1a1a; display: flex; align-items: center; min-height: 20px; }
+        .prompt { font-weight: bold; margin-right: 6px; }
+        .cursor { display: inline-block; width: 8px; height: 14px; background: var(--neon); animation: blink 0.8s infinite; }
+
+        /* Compact Keypad */
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 5px; background: #050505; height: 240px; }
+        .key { 
+            background: rgba(0, 255, 65, 0.05); border: 1px solid #222; color: var(--neon); 
+            display: flex; align-items: center; justify-content: center; font-size: 1.3em; 
+            border-radius: 4px; -webkit-tap-highlight-color: transparent;
+        }
+        .key:active { background: var(--neon); color: #000; border-color: var(--neon); }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes shake { 0% {left:3px} 50% {left:-3px} 100% {left:0} }
+        .shake-ui { animation: shake 0.1s 4; position: relative; }
+
+        /* End Screen Overlay */
+        #status-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            display:none; flex-direction:column; align-items:center; justify-content:center;
+            z-index:150; text-align:center; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<div class="game-wrapper" id="ui-main">
-    <div class="stats-bar">
-        <span>TRACE: <span id="time-left" style="color:var(--fail)">60</span>s</span>
-        <button class="shop-btn" onclick="toggleShop()">DARK_WEB SHOP</button>
-        <span>LOOT: <span id="cash-display" style="color:var(--warn)">$0</span></span>
-    </div>
-    <div class="terminal">
-        <div id="term-scroll">
-            <div class="line" style="color: #555;">[BOOT] GHOST_PWA_ACTIVE...</div>
-            <div id="input-container" class="line">
-                <span class="prompt">root@anon:~$</span><span id="current-typing"></span><span style="display:inline-block; width:8px; height:15px; background:var(--neon); animation:blink 0.8s infinite;"></span>
-            </div>
+<div class="header-bar">
+    <span>SYSTEM: <span id="timer-display">READY</span></span>
+    <span>LOOT: <span id="cash-display" style="color:var(--warn)">$0</span></span>
+</div>
+
+<div class="terminal-container" id="ui-main">
+    <div id="term-scroll">
+        <div style="color: #666;">[v10.45] SECURE_CONNECTION_STABLE</div>
+        <div id="menu-area">
+            <br>> SELECT INJECTION LEVEL:
+            <span class="menu-opt" onclick="initGame(300, 'BEGINNER')">1. BEGINNER (5:00)</span>
+            <span class="menu-opt" onclick="initGame(60, 'PROFESSIONAL')">2. PROFESSIONAL (1:00)</span>
+            <span class="menu-opt" onclick="initGame(30, 'ELITE')">3. ELITE (0:30)</span>
         </div>
-        <div id="shop-overlay">
-            <h2 style="color: var(--blue);">DARK_WEB MARKET</h2>
-            <div class="shop-item" onclick="buyUpgrade('timer', 200000)">+20s TRACE DELAY ($200k)</div>
-            <div class="shop-item" onclick="buyUpgrade('hint', 500000)">GET HINT DIGIT ($500k)</div>
-            <button class="shop-btn" style="margin-top:20px; padding: 10px 20px;" onclick="toggleShop()">CLOSE</button>
-        </div>
-        <div id="status-overlay">
-            <h1 id="overlay-msg"></h1>
-            <p id="overlay-sub"></p>
+        <div id="game-logs"></div>
+        <!-- This is where inputs go -->
+        <div id="active-input" style="display:none;" class="input-line">
+            <span class="prompt">root@hack:~#</span><span id="current-typing"></span><span class="cursor"></span>
         </div>
     </div>
-    <div class="controls">
-        <div id="abort-action" class="abort-btn" onclick="abortHack()">ABORT CONNECTION (SAVE 80% CASH)</div>
-        <div class="keypad">
-            <div class="key" onclick="press('1')">1</div><div class="key" onclick="press('2')">2</div><div class="key" onclick="press('3')">3</div>
-            <div class="key" onclick="press('4')">4</div><div class="key" onclick="press('5')">5</div><div class="key" onclick="press('6')">6</div>
-            <div class="key" onclick="press('7')">7</div><div class="key" onclick="press('8')">8</div><div class="key" onclick="press('9')">9</div>
-            <div class="key del" style="color:var(--fail)" onclick="press('DEL')">⌫</div><div class="key" onclick="press('0')">0</div><div class="key ent" onclick="press('ENT')">EXE</div>
-        </div>
+
+    <div id="status-overlay">
+        <h2 id="overlay-msg"></h2>
+        <p id="overlay-sub" style="font-size: 0.8em;"></p>
     </div>
 </div>
 
-<script>
-    // PWA Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        });
-    }
+<div class="keypad">
+    <div class="key" onclick="press('1')">1</div><div class="key" onclick="press('2')">2</div><div class="key" onclick="press('3')">3</div>
+    <div class="key" onclick="press('4')">4</div><div class="key" onclick="press('5')">5</div><div class="key" onclick="press('6')">6</div>
+    <div class="key" onclick="press('7')">7</div><div class="key" onclick="press('8')">8</div><div class="key" onclick="press('9')">9</div>
+    <div class="key" style="color:var(--fail)" onclick="press('DEL')">⌫</div><div class="key" onclick="press('0')">0</div><div class="key" style="color:var(--neon)" onclick="press('ENT')">EXE</div>
+</div>
 
+<script>
+    const logs = document.getElementById('game-logs');
     const termScroll = document.getElementById('term-scroll');
     const currentTyping = document.getElementById('current-typing');
-    const inputContainer = document.getElementById('input-container');
-    let secret = Math.floor(1000 + Math.random() * 9000).toString();
-    let maxTime = parseInt(localStorage.getItem('h_maxTime')) || 60;
-    let timeLeft = maxTime;
-    let cash = parseInt(localStorage.getItem('h_cash')) || 0;
-    let timerStarted = false, gameActive = true, inputBuffer = "";
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playBeep(freq, dur) {
-        try {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.value = freq;
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-            osc.start(); osc.stop(audioCtx.currentTime + dur);
-        } catch(e) {}
-    }
+    const inputLine = document.getElementById('active-input');
+    const menu = document.getElementById('menu-area');
+    
+    let secret = "", totalTime = 0, timeLeft = 0, cash = parseInt(localStorage.getItem('h_cash')) || 0;
+    let gameActive = false, timerStarted = false, inputBuffer = "";
 
     document.getElementById('cash-display').innerText = "$" + cash.toLocaleString();
 
+    function initGame(sec, lvl) {
+        secret = Math.floor(1000 + Math.random() * 9000).toString();
+        totalTime = timeLeft = sec;
+        menu.style.display = 'none';
+        inputLine.style.display = 'flex';
+        gameActive = true;
+        updateTime();
+        print(`[!] SECURITY LEVEL: ${lvl} BYPASSED. STARTING BRUTE-FORCE...`, "var(--warn)");
+    }
+
+    function updateTime() {
+        let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+        document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
     function press(key) {
         if (!gameActive) return;
-        playBeep(400, 0.05);
         if (key === 'DEL') inputBuffer = inputBuffer.slice(0, -1);
-        else if (key === 'ENT' && inputBuffer.length === 4) {
-            if (!timerStarted) { timerStarted = true; document.getElementById('abort-action').style.display = "block"; startTimer(); }
-            submitGuess(inputBuffer); inputBuffer = "";
-        } else if (inputBuffer.length < 4 && key !== 'ENT' && key !== 'DEL') inputBuffer += key;
+        else if (key === 'ENT') {
+            if (inputBuffer.length === 4) {
+                if (!timerStarted) startTimer();
+                submitGuess(inputBuffer);
+                inputBuffer = "";
+            }
+        } else if (inputBuffer.length < 4) inputBuffer += key;
         currentTyping.innerText = inputBuffer;
+        if (window.navigator.vibrate) window.navigator.vibrate(20);
     }
 
     function startTimer() {
+        timerStarted = true;
         const itv = setInterval(() => {
             if (!gameActive) { clearInterval(itv); return; }
-            timeLeft--; document.getElementById('time-left').innerText = timeLeft;
-            if (timeLeft < 10) document.getElementById('ui-main').classList.add('glitch');
-            if (timeLeft <= 0) {
-                clearInterval(itv);
-                let fine = Math.floor(cash * 0.2); cash -= fine;
-                localStorage.setItem('h_cash', cash);
-                showEnd("INTERPOL TRACED", "fail", -fine);
-            }
+            timeLeft--; updateTime();
+            if (timeLeft <= 0) showEnd("TRACE_COMPLETE: ACCESS_LOCKED", "fail");
         }, 1000);
     }
 
-    async function printInline(text, color = "var(--neon)", speed = 10) {
-        const d = document.createElement('div'); d.className = "line"; d.style.color = color;
-        termScroll.insertBefore(d, inputContainer);
+    async function print(text, color = "var(--neon)") {
+        const d = document.createElement('div');
+        d.style.color = color; d.style.marginBottom = "5px";
+        logs.appendChild(d);
         for (let i = 0; i < text.length; i++) {
-            d.innerHTML += text.charAt(i); termScroll.scrollTop = termScroll.scrollHeight;
-            if (i % 2 === 0) playBeep(600, 0.01);
-            await new Promise(r => setTimeout(r, speed));
+            d.innerHTML += text.charAt(i);
+            termScroll.scrollTop = termScroll.scrollHeight;
+            await new Promise(r => setTimeout(r, 15));
         }
     }
 
     async function submitGuess(guess) {
-        const h = document.createElement('div'); h.className = "line"; h.innerHTML = `<span class="prompt">root@anon:~$</span> ${guess}`;
-        termScroll.insertBefore(h, inputContainer);
-        let exact = 0, partial = 0;
-        let sArr = secret.split(''), gArr = guess.split('');
+        const h = document.createElement('div');
+        h.innerHTML = `<span class="prompt">root@hack:~#</span>${guess}`;
+        logs.appendChild(h);
+
+        let exact = 0, partial = 0, sArr = secret.split(''), gArr = guess.split('');
         for(let i=0; i<4; i++) if(gArr[i]===sArr[i]) { exact++; sArr[i]=gArr[i]=null; }
         for(let i=0; i<4; i++) if(gArr[i]!==null && sArr.includes(gArr[i])) { partial++; sArr[sArr.indexOf(gArr[i])]=null; }
-        if (exact === 4) { await printInline(">> PIN_MATCHED. INJECTING MALWARE...", "#fff"); processLoot(); }
-        else {
-            if (window.navigator.vibrate) window.navigator.vibrate(50);
-            await printInline(`[-] INJECTING [${guess}]...`, "#666");
-            await printInline(`[-] ANALYZING PACKETS...`, "#666");
-            await printInline(`[!] FAIL: FIREWALL_STRENGTH 85%`, "var(--fail)");
-            await printInline(`[>] POS_LOCKED[${exact}] | DATA_FOUND[${partial}]`, "var(--warn)", 20);
+
+        if (exact === 4) {
+            gameActive = false;
+            await print("DECRYPTING...", "#fff");
+            let reward = Math.floor(Math.random() * 800000) + 50000;
+            cash += reward; localStorage.setItem('h_cash', cash);
+            showEnd("BREACH SUCCESSFUL", "win", reward);
+        } else {
+            document.getElementById('ui-main').classList.add('shake-ui');
+            setTimeout(() => document.getElementById('ui-main').classList.remove('shake-ui'), 200);
+            await print(`[X] MATCH:${exact} | DATA:${partial}`, "var(--warn)");
         }
     }
 
-    function processLoot() {
+    function showEnd(msg, type, reward = 0) {
         gameActive = false;
-        let reward = Math.floor(Math.random() * 400000) + 50000;
-        cash += reward; localStorage.setItem('h_cash', cash);
-        showEnd("BREACH SUCCESS", "win", reward);
-    }
-
-    function abortHack() { gameActive = false; showEnd("ABORTED", "win", 0); }
-    function toggleShop() { const s = document.getElementById('shop-overlay'); s.style.display = (s.style.display === "flex") ? "none" : "flex"; }
-    function buyUpgrade(type, cost) {
-        if (cash >= cost) {
-            cash -= cost;
-            if (type === 'timer') { maxTime += 20; localStorage.setItem('h_maxTime', maxTime); }
-            else if (type === 'hint') { alert("HINT: Code starts with " + secret[0]); }
-            localStorage.setItem('h_cash', cash); location.reload();
-        } else alert("INSUFFICIENT CREDITS");
-    }
-
-    function showEnd(msg, type, reward) {
-        gameActive = false; const o = document.getElementById('status-overlay');
-        o.style.display = "flex"; o.className = type === "win" ? "overlay-win" : "overlay-fail";
+        const overlay = document.getElementById('status-overlay');
+        overlay.style.display = "flex";
+        overlay.style.background = type === 'win' ? "rgba(0,100,50,0.95)" : "rgba(120,0,0,0.95)";
         document.getElementById('overlay-msg').innerText = msg;
-        document.getElementById('overlay-sub').innerText = reward !== 0 ? `NET CHANGE: $${reward.toLocaleString()}` : "NO ASSETS LOST";
+        document.getElementById('overlay-sub').innerText = reward > 0 ? `LOOT: $${reward.toLocaleString()}` : "CONNECTION_TERMINATED";
         setTimeout(() => location.reload(), 4000);
     }
 </script>
